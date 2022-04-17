@@ -1,7 +1,7 @@
 import React from 'react';
 import 'antd/dist/antd.min.css';
 import './index.css';
-import { Menu, Switch, Divider, Spin } from 'antd';
+import { Menu, Switch, Divider, Spin, notification } from 'antd';
 import {
   PlusSquareFilled,
   EditFilled
@@ -18,7 +18,6 @@ const Main = () => {
   const [notes, setNotes] = React.useState([])
   const [modalTitle, setModalTitle] = React.useState('')
   const [templates, setTemplates] = React.useState([])
-  const [isLoading, setIsLoading] = React.useState(false)
   const [currentNote, setCurrentNote] = React.useState({})
   const [currentTemplate, setCurrentTemplate] = React.useState({})
   const changeMode = value => {
@@ -31,12 +30,15 @@ const Main = () => {
     setCurrentTemplate({})
   }
   const loadData = async () => {
-    setIsLoading(true)
-    const data = await getNotes()
-    const templ = await getTemplates()
-    setNotes(data)
-    setTemplates(templ)
-    setIsLoading(false)
+    try {
+      const data = await getNotes()
+      const templ = await getTemplates()
+      setNotes(data)
+      setTemplates(templ)
+    }
+    catch(e) {
+      notification['error']({message: 'Server Error'});
+    }
   }
   const openEditModal = (note) => {
     setModalTitle('Edit Note')
@@ -52,9 +54,6 @@ const Main = () => {
     loadData()
   }, [isOpened])
 
-  if (isLoading) {
-    return <Spin spinning={isLoading}></Spin>
-  }
   return (
     <>
       <Switch onChange={changeMode} /> Change Mode

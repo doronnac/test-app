@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Form, Input, Button, Select, Checkbox } from 'antd';
+import { Modal, Form, Input, Button, Select, Checkbox, notification } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { updateNote, deleteNote, createNote } from "../utils/note";
 import './style.css'
@@ -25,19 +25,24 @@ function Note({ isOpened, closeModal, data, template, title }) {
     ]
     const [noteType, setNoteType] = React.useState(data.type || template.type || noteTypes[0].value)
     const onFinish = async (values) => {
-        if (title === "Create Template") {
-            await createTemplate(values)
+        try {
+            if (title === "Create Template") {
+                await createTemplate(values)
+            }
+            else if (title === "Update Template") {
+                values.id = template.id
+                await updateTemplate(values)
+            }
+            else if (data.note) {
+                values.id = data.id
+                await updateNote(values)
+            }
+            else {
+                await createNote(values)
+            }
         }
-        else if (title === "Update Template") {
-            values.id = template.id
-            await updateTemplate(values)
-        }
-        else if (data.note) {
-            values.id = data.id
-            await updateNote(values)
-        }
-        else {
-            await createNote(values)
+        catch (e) {
+            notification['error']({ message: 'Server Error' });
         }
         form.resetFields()
         closeModal()
@@ -101,62 +106,62 @@ function Note({ isOpened, closeModal, data, template, title }) {
                             : noteType === 'toDoList' ?
                                 <>
                                     <Form.List
-                                            name="toDoList"
-                                            initialValue={data?.note?.toDoList || template?.note?.toDoList}
-                                        >
-                                            {(fields, { add, remove }, { errors }) => (
-                                                <>
-                                                    {fields.map((field, index) => (
+                                        name="toDoList"
+                                        initialValue={data?.note?.toDoList || template?.note?.toDoList}
+                                    >
+                                        {(fields, { add, remove }, { errors }) => (
+                                            <>
+                                                {fields.map((field, index) => (
+                                                    <Form.Item
+                                                        required={false}
+                                                        key={field.key}
+                                                        style={{ flexDirection: 'row' }}
+                                                    >
                                                         <Form.Item
-                                                            required={false}
-                                                            key={field.key}
-                                                            style={{flexDirection: 'row'}}
+                                                            name={[field.name, 'checked']}
+                                                            noStyle
+                                                            valuePropName="checked"
                                                         >
-                                                            <Form.Item
-                                                                name={[field.name, 'checked']}
-                                                                noStyle
-                                                                valuePropName="checked"
-                                                            >
-                                                                <Checkbox  style={{marginRight: '2%'}}/>
-                                                            </Form.Item>
-                                                            <Form.Item
-                                                                name={[field.name, 'item']}
-                                                                noStyle
-                                                            >
-                                                                <Input style={fields.length > 1 ? { width: '85%' } : {width: '90%'}} />
-                                                            </Form.Item>
-                                                            {fields.length > 1 ? (
-                                                                <MinusCircleOutlined
-                                                                    className="dynamic-delete-button"
-                                                                    onClick={() => remove(field.name)}
-                                                                />
-                                                            ) : null}
+                                                            <Checkbox style={{ marginRight: '2%' }} />
                                                         </Form.Item>
-                                                    ))}
-                                                    <Form.Item>
-                                                        <Button
-                                                            type="dashed"
-                                                            onClick={() => add()}
-                                                            style={{ width: '100%' }}
-                                                            icon={<PlusOutlined />}
+                                                        <Form.Item
+                                                            name={[field.name, 'item']}
+                                                            noStyle
                                                         >
-                                                            Add field
-                                                        </Button>
-                                                        <Button
-                                                            type="dashed"
-                                                            onClick={() => {
-                                                                add('The head item', 0);
-                                                            }}
-                                                            style={{ width: '100%', marginTop: '20px' }}
-                                                            icon={<PlusOutlined />}
-                                                        >
-                                                            Add field at head
-                                                        </Button>
-                                                        <Form.ErrorList errors={errors} />
+                                                            <Input style={fields.length > 1 ? { width: '85%' } : { width: '90%' }} />
+                                                        </Form.Item>
+                                                        {fields.length > 1 ? (
+                                                            <MinusCircleOutlined
+                                                                className="dynamic-delete-button"
+                                                                onClick={() => remove(field.name)}
+                                                            />
+                                                        ) : null}
                                                     </Form.Item>
-                                                </>
-                                            )}
-                                        </Form.List>
+                                                ))}
+                                                <Form.Item>
+                                                    <Button
+                                                        type="dashed"
+                                                        onClick={() => add()}
+                                                        style={{ width: '100%' }}
+                                                        icon={<PlusOutlined />}
+                                                    >
+                                                        Add field
+                                                    </Button>
+                                                    <Button
+                                                        type="dashed"
+                                                        onClick={() => {
+                                                            add('The head item', 0);
+                                                        }}
+                                                        style={{ width: '100%', marginTop: '20px' }}
+                                                        icon={<PlusOutlined />}
+                                                    >
+                                                        Add field at head
+                                                    </Button>
+                                                    <Form.ErrorList errors={errors} />
+                                                </Form.Item>
+                                            </>
+                                        )}
+                                    </Form.List>
                                 </>
                                 : noteType === 'list' ?
                                     <>
@@ -175,7 +180,7 @@ function Note({ isOpened, closeModal, data, template, title }) {
                                                                 {...field}
                                                                 noStyle
                                                             >
-                                                                <Input style={fields.length > 1 ? { width: '90%' } : {width: '100%'}} />
+                                                                <Input style={fields.length > 1 ? { width: '90%' } : { width: '100%' }} />
                                                             </Form.Item>
                                                             {fields.length > 1 ? (
                                                                 <MinusCircleOutlined
