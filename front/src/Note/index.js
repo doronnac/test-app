@@ -4,6 +4,7 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { updateNote, deleteNote, createNote } from "../utils/note";
 import './style.css'
 import { createTemplate, deleteTemplate, updateTemplate } from "../utils/template";
+
 function Note({ isOpened, closeModal, data, template, title }) {
     const { Option } = Select;
     const [form] = Form.useForm();
@@ -15,6 +16,7 @@ function Note({ isOpened, closeModal, data, template, title }) {
             type: data.type || template.type || 'text',
             note: data.note?.text || template.note?.text || ''
         })
+        // eslint-disable-next-line
     }, [data, template])
     const noteTypes = [
         { name: 'Text', value: 'text' },
